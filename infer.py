@@ -13,15 +13,42 @@ import warnings
 # 忽略所有警告
 warnings.filterwarnings('ignore')
 
-modelname='CAMPPlus_MFCC'
-modelconfig='cam++.yml'
+#配置设置
+modelname1='CAMPPlus_MFCC'
+modelconfig1='cam++.yml'
 parser = argparse.ArgumentParser(description=__doc__)
 add_arg = functools.partial(add_arguments, argparser=parser)
-add_arg('configs',          str,    'configs/'+modelconfig,   '配置文件')
+add_arg('configs',          str,    'configs/'+modelconfig1,   '配置文件')
 add_arg('use_gpu',          bool,   True,                  '是否使用GPU预测')
-add_arg('model_path',       str,    'models/'+modelname+'/best_model/', '导出的预测模型文件路径')
+add_arg('model_path',       str,    'models/'+modelname1+'/best_model/', '导出的预测模型文件路径')
 args = parser.parse_args()
 predictor1 = MAClsPredictor(configs=args.configs,
+                            model_path=args.model_path,
+                            use_gpu=args.use_gpu)
+
+
+modelname2='CAMPPlus_MelSpectrogram'
+modelconfig2='cam++_melspectrogram.yml'
+parser = argparse.ArgumentParser(description=__doc__)
+add_arg = functools.partial(add_arguments, argparser=parser)
+add_arg('configs',          str,    'configs/'+modelconfig2,   '配置文件')
+add_arg('use_gpu',          bool,   True,                  '是否使用GPU预测')
+add_arg('model_path',       str,    'models/'+modelname2+'/best_model/', '导出的预测模型文件路径')
+args = parser.parse_args()
+predictor2 = MAClsPredictor(configs=args.configs,
+                            model_path=args.model_path,
+                            use_gpu=args.use_gpu)
+
+
+modelname3='EcapaTdnn_MFCC'
+modelconfig3='ecapa_tdnn_mfcc.yml'
+parser = argparse.ArgumentParser(description=__doc__)
+add_arg = functools.partial(add_arguments, argparser=parser)
+add_arg('configs',          str,    'configs/'+modelconfig3,   '配置文件')
+add_arg('use_gpu',          bool,   True,                  '是否使用GPU预测')
+add_arg('model_path',       str,    'models/'+modelname3+'/best_model/', '导出的预测模型文件路径')
+args = parser.parse_args()
+predictor3 = MAClsPredictor(configs=args.configs,
                             model_path=args.model_path,
                             use_gpu=args.use_gpu)
 #切割音频
@@ -100,10 +127,16 @@ class Predict:
     def predictset_5saudio(self):
 
 
-        label_pre, score = predictor1.predict(audio_data=self.file_path )
+        label_pre1,_= predictor1.predict(audio_data=self.file_path )
+        label_pre2,_ = predictor2.predict(audio_data=self.file_path)
+        label_pre3,_ = predictor3.predict(audio_data=self.file_path)
+        votes_for_1 = [label_pre1, label_pre2, label_pre3].count('1')
+
+        # 如果标签 '1' 的票数超过半数，则最终标签为 '1'，否则为 '0'
+        label_pre = '1' if votes_for_1 > 1 else '0'
         if  self.print_sit == 1:
             result = "炸街" if label_pre == '1' else "不是炸街"
-            print(f"{self.file_path}在{modelname}预测下结果为{result}")
+            print(f"{self.file_path}预测结果为{result}")
         return label_pre
 
     def predictset_longaudio(self, file_slicepath="dataset/tempslice"):
@@ -114,10 +147,16 @@ class Predict:
 
         labels = []
         for index, audio_path in enumerate(wavfiles):
-            label_pre, score = predictor1.predict(audio_data=audio_path)
+            label_pre1, _ = predictor1.predict(audio_data=audio_path)
+            label_pre2, _ = predictor2.predict(audio_data=audio_path)
+            label_pre3, _ = predictor3.predict(audio_data=audio_path)
+            votes_for_1 = [label_pre1, label_pre2, label_pre3].count('1')
+
+            # 如果标签 '1' 的票数超过半数，则最终标签为 '1'，否则为 '0'
+            label_pre = '1' if votes_for_1 > 1 else '0'
             labels.append(label_pre)
             if self.print_sit == 1 and index % 10 == 0:
-                print(f'预测进度：{index}/{len(wavfiles)}')
+                print(f'单音频切片预测进度：{index}/{len(wavfiles)}')
         # 使用滑动窗口检查连续性
         window_size = 5
         result = 0
@@ -155,7 +194,7 @@ class Predict:
     def predictset_list(self):
         self.mode = 'list'
         listfolder = os.listdir(self.file_folder)
-        csv_file_path = os.path.join(self.csv_result, '_2128_prediction_results.csv')
+        csv_file_path = os.path.join(self.csv_result, '_313_stacking_prediction_results.csv')
 
         # 打开CSV文件准备写入
         with open(csv_file_path, 'w', newline='', encoding='utf-8') as csvfile:
@@ -192,7 +231,7 @@ class Predict:
 
 if __name__ ==  "__main__":
     #把25s文件夹中的视频 音频提取到25s audio（提取一次之后将mp4_2_wavfun注释即可，避免重复转换）
-    mp4_2_wavfun()
-    pred=Predict(file_path='dataset/foldertest/132_out.wav',file_folder='dataset/25s_audio')
-    pred.predictset_list()
+    #mp4_2_wavfun()
+    pred=Predict(file_path='dataset/25s_audio/48B02DE039CB_1704198835_1704198856_Bf9Yx.wav',file_folder='dataset/25s_audio')
+    pred.predictset()
     clear_tempslice()

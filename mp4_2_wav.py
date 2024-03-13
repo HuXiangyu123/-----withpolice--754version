@@ -2,7 +2,7 @@ import os
 from moviepy.editor import *
 import glob
 
-def mp4_2_wavfun(input_folder_path = 'dataset/25s',output_folder_path = 'dataset/25s_audio'):
+def mp4_2_wavfun(input_folder_path = 'dataset/25s/25s',output_folder_path = 'dataset/25s_audio'):
     # 检查输出文件夹是否存在，如果不存在，则创建
     if not os.path.exists(output_folder_path):
         os.makedirs(output_folder_path)
