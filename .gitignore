@@ -6,3 +6,7 @@ macls.egg-info/
 output/
 videos/
 test.py
+*.mp4
+*.wav
+*.zip
+*.csv

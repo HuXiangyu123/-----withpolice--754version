@@ -1,5 +1,9 @@
 import argparse
 import functools
+import time
+import numpy
+import pydub
+
 from macls.predict import MAClsPredictor
 from macls.utils.utils import add_arguments, print_arguments
 from mp4_2_wav import mp4_2_wavfun
@@ -88,6 +92,12 @@ class Predict:
         self.mode = mode
         if not os.path.exists(file_folder):
             os.makedirs(file_folder)
+
+    def is_silent(self, threshold=0.01):
+        """Check if the audio file is silent."""
+        y, sr = librosa.load(self.file_path, sr=16000)
+
+        return y.size == 0  or max(abs(y)) < threshold
     def slice_audio(self, slice_length_sec=5 ,slide_step_sec=5.0, samplerate=16000,
                     file_savepath="dataset/tempslice"):
         # 加载音频文件，y是音频信号，sr是采样率
@@ -178,12 +188,18 @@ class Predict:
 
 
     def predictset(self):
+
+
         if self.mode == 'simple':
             self.print_sit = 1
         else:
             self.print_sit = 0
+
+        if self.is_silent():
+            return '0'
        # print(self.file_path)
         divide_sit = self.slice_audio()
+
         if divide_sit == 1:
             result = self.predictset_longaudio()
         else:
@@ -194,7 +210,7 @@ class Predict:
     def predictset_list(self):
         self.mode = 'list'
         listfolder = os.listdir(self.file_folder)
-        csv_file_path = os.path.join(self.csv_result, '_313_stacking_prediction_results.csv')
+        csv_file_path = os.path.join(self.csv_result,time.strftime("%Y-%m-%d %H-%M-%S", time.localtime()) + 'Prediction_Results.csv')
 
         # 打开CSV文件准备写入
         with open(csv_file_path, 'w', newline='', encoding='utf-8') as csvfile:
@@ -231,7 +247,10 @@ class Predict:
 
 if __name__ ==  "__main__":
     #把25s文件夹中的视频 音频提取到25s audio（提取一次之后将mp4_2_wavfun注释即可，避免重复转换）
-    #mp4_2_wavfun()
-    pred=Predict(file_path='dataset/25s_audio/48B02DE039CB_1704198835_1704198856_Bf9Yx.wav',file_folder='dataset/25s_audio')
-    pred.predictset()
+
+    #librosa可以直接处理视频，所以可以直接用视频输入预测，MP4-2-wav不出bug可以不适用
+    #mp4_2_wavfun(input_folder_path = 'dataset/25s/videos_total/1区')
+    pred=Predict(file_path='dataset/25s/videos_total/1区/48B02DE04B0A_1704394212_1704394217_kIigJ.mp4',file_folder='dataset/25s/videos_total/4区/')
+    pred.predictset_list()
+    #pred.predictset()
     clear_tempslice()
