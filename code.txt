@@ -1,0 +1,46 @@
+from moviepy.editor import VideoFileClip, AudioFileClip
+from moviepy.video.io.ImageSequenceClip import ImageSequenceClip
+import cv2
+import numpy as np
+def convert_to_mp4(video_path):
+    if not video_path.endswith('.mp4'):
+        new_path = video_path.rsplit('.', 1)[0] + '.mp4'
+        video_clip = VideoFileClip(video_path)
+        video_clip.write_videofile(new_path, codec='libx264')
+        return new_path
+    return video_path
+def integrated_video_processing(video_path, output_path):
+    cap = cv2.VideoCapture(video_path)
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    processed_frames = []
+    pixel_sums = set()
+    frame_count = 0
+    duration = 0
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            print("End of video or error.")
+            break
+        corner_pixels = frame[:10, :10]
+        pixel_sum = np.sum(corner_pixels)
+        if pixel_sum in pixel_sums:
+            print(f"Detected repetition at frame {frame_count}.")
+           # break检测重复的算法写的不对，每一帧都是重复的，很离谱
+        pixel_sums.add(pixel_sum)
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        processed_frames.append(frame_rgb)
+        frame_count += 1
+    cap.release()
+    if frame_count > 0:
+        duration = frame_count / fps
+    audio_clip = AudioFileClip(video_path).subclip(0, duration)
+    if processed_frames:
+        video_clip = ImageSequenceClip(processed_frames, fps=fps).set_audio(audio_clip)
+        video_clip.write_videofile(output_path, codec="libx264")
+        print(f"Video successfully saved to {output_path}")
+    else:
+        print("No frames processed or video too short.")
+output_path = "F:/project/traffic_project_by_recordsound/test/a.mp4"  # 替换为输出文件的路径
+video_path = 'F:/project/traffic_project_by_recordsound/test/source/asdf.mp4'
+convert_to_mp4(video_path)
+integrated_video_processing(video_path, output_path)

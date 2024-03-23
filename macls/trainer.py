@@ -4,6 +4,7 @@ import os
 import platform
 import shutil
 import time
+import random
 from datetime import timedelta
 
 import numpy as np
@@ -38,6 +39,15 @@ from macls.utils.utils import dict_to_object, plot_confusion_matrix, print_argum
 logger = setup_logger(__name__)
 
 
+def setup_seed(seed=3407):
+    random.seed(seed)  # Python的随机性
+    os.environ['PYTHONHASHSEED'] = str(seed)  # 设置Python哈希种子，为了禁止hash随机化，使得实验可复现
+    np.random.seed(seed)  # numpy的随机性
+    torch.manual_seed(seed)  # torch的CPU随机性，为CPU设置随机种子
+    torch.cuda.manual_seed(seed)  # torch的GPU随机性，为当前GPU设置随机种子
+    torch.cuda.manual_seed_all(seed)
+
+
 class MAClsTrainer(object):
     def __init__(self, configs, use_gpu=True):
         """ macls集成工具类
@@ -45,6 +55,7 @@ class MAClsTrainer(object):
         :param configs: 配置字典
         :param use_gpu: 是否使用GPU训练模型
         """
+        setup_seed()
         if use_gpu:
             assert (torch.cuda.is_available()), 'GPU不可用'
             self.device = torch.device("cuda")
@@ -53,6 +64,8 @@ class MAClsTrainer(object):
             self.device = torch.device("cpu")
         self.use_gpu = use_gpu
         # 读取配置文件
+
+
         if isinstance(configs, str):
             with open(configs, 'r', encoding='utf-8') as f:
                 configs = yaml.load(f.read(), Loader=yaml.FullLoader)

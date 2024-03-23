@@ -2,7 +2,7 @@ import os
 from moviepy.editor import *
 import glob
 
-def mp4_2_wavfun(input_folder_path = 'dataset/25s/25s',output_folder_path = 'dataset/25s_audio'):
+def mp4_2_wavfun(input_folder_path = 'dataset/testtran',output_folder_path = 'dataset'):
     # 检查输出文件夹是否存在，如果不存在，则创建
     if not os.path.exists(output_folder_path):
         os.makedirs(output_folder_path)
@@ -24,6 +24,8 @@ def mp4_2_wavfun(input_folder_path = 'dataset/25s/25s',output_folder_path = 'dat
         # 将视频的音频部分导出为WAV文件
         audiofile.subclip(0, 25).write_audiofile(output_audio_path)
 
-       # print(f"转换完成，音频已保存为 {output_audio_path}")
+        print(f"转换完成，音频已保存为 {output_audio_path}")
 
+if __name__ == "__main__":
+    mp4_2_wavfun()
     print("所有视频已成功转换。")

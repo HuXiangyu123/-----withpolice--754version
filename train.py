@@ -15,10 +15,12 @@ add_arg('pretrained_model', str,    None,                       '预训练模型
 args = parser.parse_args()
 print_arguments(args=args)
 
+
 # 获取训练器
 trainer = MAClsTrainer(configs=args.configs, use_gpu=args.use_gpu)
 
 trainer.train(save_model_path=args.save_model_path,
               resume_model=args.resume_model,
               pretrained_model=args.pretrained_model)
-#write a code with sort
+#write a quick sort
+

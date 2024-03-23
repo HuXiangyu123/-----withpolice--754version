@@ -12,10 +12,10 @@ import soundfile as sf
 import os
 import re
 import csv
-
-import warnings
-# 忽略所有警告
-warnings.filterwarnings('ignore')
+#
+# import warnings
+# # 忽略所有警告
+# warnings.filterwarnings('ignore')
 
 #配置设置
 modelname1='CAMPPlus_MFCC'
@@ -103,8 +103,12 @@ class Predict:
         # 加载音频文件，y是音频信号，sr是采样率
         divide_true = 0
         file_path=self.file_path
-       # print(file_path)
+       #print(file_path)
+        if not os.path.exists(file_savepath):
+            os.makedirs(file_savepath)
+
         y, sr = librosa.load(file_path, sr=samplerate)
+
 
         # 计算音频长度（秒）
         audio_length_sec = librosa.get_duration(y=y, sr=sr)
@@ -177,7 +181,7 @@ class Predict:
             result = 1
             if self.print_sit == 1:
                 for index, start_index in enumerate(consecutive_indices):
-                    print(f"在{start_index + 1}秒处，发生第{index + 1}次炸街现象")
+                    print(f"在{start_index + 3}秒处，发生第{index + 1}次炸街现象")
         else:
             if self.print_sit == 1:
                 print("未发生炸街现象")
@@ -250,7 +254,11 @@ if __name__ ==  "__main__":
 
     #librosa可以直接处理视频，所以可以直接用视频输入预测，MP4-2-wav不出bug可以不适用
     #mp4_2_wavfun(input_folder_path = 'dataset/25s/videos_total/1区')
-    pred=Predict(file_path='dataset/25s/videos_total/1区/48B02DE04B0A_1704394212_1704394217_kIigJ.mp4',file_folder='dataset/25s/videos_total/4区/')
-    pred.predictset_list()
-    #pred.predictset()
+    pred=Predict(file_path='dataset/带时间视频_修复/摄像头二/processed_2024.01.18.21.34.mp4',file_folder='dataset/带时间视频_修复/摄像头一')
+    #集体预测，改动file_folder 参数即可
+    # pred.predictset_list()
+    #单体预测，改动file_path 参数即可
+    pred.predictset()
     clear_tempslice()
+    
+    
